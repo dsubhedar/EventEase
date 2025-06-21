@@ -1,0 +1,36 @@
+﻿@page "/attendance"
+@inject AttendanceService Attendee
+@inject EventService EventSvc
+
+<h3 class="header">Attendance Tracker</h3>
+
+<table class="grid-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Event ID</th>
+            <th>Event Name</th>
+            <th>Attended</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var person in Attendee.Participants)
+        {
+            <tr>
+                <td>@person.Name</td>
+                <td>@person.Email</td>
+                <td>@person.EventId</td>
+                <td>@(EventSvc.GetEventName(person.EventId) ?? "N/A")</td>
+                <td>@(person.HasAttended ? "✅" : "❌")</td>
+                <td>
+                    @if (!person.HasAttended)
+                    {
+                        <button @onclick="() => Attendee.MarkAttendance(person.Id)">Mark Present</button>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

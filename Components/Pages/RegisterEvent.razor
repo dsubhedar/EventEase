@@ -1,0 +1,83 @@
+﻿@page "/register"
+@using System.ComponentModel.DataAnnotations
+@inject AttendanceService Attendee
+@inject NavigationManager Navigation
+
+<h3>Register for an Event</h3>
+<EditForm  EditContext="@editContext"  FormName="Registration" OnValidSubmit="HandleValidSubmit">
+
+    <DataAnnotationsValidator />
+
+    <div>
+        <label>Name:</label>
+        <InputText @bind-Value="registration.Name" />
+        <ValidationMessage For="@(() => registration.Name)" class="validation-message" />
+
+    </div>
+
+    <div>
+        <label>Email:</label>
+        <InputText @bind-Value="registration.Email" />
+        <ValidationMessage For="@(() => registration.Email)" class="validation-message" />
+    </div>
+    <label>Event:</label>
+    <InputSelect @bind-Value="registration.EventId" class="form-control">
+        <option value="">-- Select an event --</option>
+        @foreach (var ev in Events)
+        {
+            <option value="@ev.Id">@ev.Name (@ev.Date.ToString("MMM dd, yyyy"))</option>
+        }
+    </InputSelect>
+    <ValidationMessage For="@(() => registration.EventId)" class="validation-message" />
+    <button type="submit">Register</button>
+    <button type="button" @onclick="ResetForm">Reset</button>
+
+</EditForm>
+
+@code {
+    private Registration registration = new();
+
+    private EditContext editContext;
+    private List<Event> Events = new();
+
+    [Inject]
+    public EventService EventService { get; set; }
+
+    public class Registration
+    {
+        [Required(ErrorMessage = "Event Id is required")]
+        public int EventId { get; set; }
+        [Required(ErrorMessage = "Name is required")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; }
+    }
+    protected override void OnInitialized()
+    {
+        Events = EventService.GetEvents();
+        editContext = new EditContext(registration);
+
+    }
+
+
+    private void HandleValidSubmit()
+    {
+
+        // Process form
+        Attendee.Register(registration.Name, registration.Email,registration.EventId);
+        StateHasChanged();
+        Navigation.NavigateTo("/");
+
+    }
+    private void ResetForm()
+    {
+        Console.WriteLine("Reset button clicked"); // Will print to browser console in WebAssembly, or terminal in Server
+        registration = new Registration();
+        editContext = new EditContext(registration); // This clears validation!
+        StateHasChanged();
+
+    }
+
+}
